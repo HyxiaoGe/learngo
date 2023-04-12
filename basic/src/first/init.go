@@ -1,4 +1,4 @@
-package first
+package main
 
 import (
 	"math"

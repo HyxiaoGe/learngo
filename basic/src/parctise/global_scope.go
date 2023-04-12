@@ -1,17 +1,16 @@
 package main
 
-//
-//var a = "G"
-//
+var g = "G"
+
 //func main() {
 //	n()
 //	m()
 //	n()
 //}
 //
-//func n() { print(a) }
+//func n() { print(g) }
 //
 //func m() {
-//	a := "O"
-//	print(a)
+//	g = "O"
+//	print(g)
 //}

@@ -16,7 +16,6 @@ type T struct{}
 func init() {}
 func main() {
 	var a int
-	var b int = 0
 	Func1()
 	// ...
 	fmt.Println(a)
