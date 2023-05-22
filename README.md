@@ -1,2 +1,2 @@
 # learngo
-自学Go之路
+Go 自学之路
