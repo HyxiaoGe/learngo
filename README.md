@@ -54,4 +54,59 @@ for _, x := range a {
 // 10
 // 15
 ```
+## 常量
+常量是一个简单值的标识符，在程序运行时，不会被修改的量。用 const 修饰符来修饰
+```
+// 显式类型定义： 
+const b string = "abc"
+// 隐式类型定义： 
+const b = "abc"
+```
+也可以作为枚举，常量组
+```
+const (
+    Unknown = 0
+    Female = 1
+    Male = 2
+)
+```
+***
+注意：
+* 常量中的数据类型只可以是布尔型、数字型（整数型、浮点型和复数）和字符串型
+* 不曾使用的常量，在编译的时候，是不会报错的
+
+## iota
+iota，特殊常量，默认是int类型，可以认为是一个可以被编译器修改的常量，类似于计数器的原理
+可以被用作枚举值：
+```
+const (
+    Unknown = iota
+    Female = iota
+    Male = iota
+)
+```
+第一个 iota 等于 0，每当 iota 在新的一行被使用时，它的值都会自动加 1，因此Unknown = 0，Female = 1，Male = 2；也可以简写为如下形式：
+```
+const (
+    Unknown = iota
+    Female
+    Male
+)
+```
+***
+```
+const (
+    Unknown = iota
+    Female
+    Male
+)
+const (
+    a = iota
+    b
+    c
+)
+```
+注意，这里的 a 是从0开始了，因为每次 const 出现时，都会让 iota 初始化为0.
+
+
 
