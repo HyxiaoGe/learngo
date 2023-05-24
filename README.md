@@ -246,9 +246,28 @@ switch var1 {
         ...
 }
 ```
+## 切片
+### 什么是切片
+Go 数组的长度不可变，在特定场景中这样的集合就不太适用，因此Go提供了一种灵活、功能强悍的内置类型切片（”动态数组“），与数组相比，切片的长度是不固定的，可以追加元素，在追加时可能使切片的容量增大
 
+#### 定义切片
+```
+//  第一种
+var identifier []type
+//  第二种
+var slice1 []type = make([]type, len)
+//  也可简写成
+slice1 := make([]type, len)
 
+//  第三种，通过对数组操作返回
+course := [5]string{"Java", "Python", "C++", "PHP", "Go"}
+subCourse := course[1:2]
+fmt.Println(subCourse) // [Python]
+```
+### 切片初始化
+```
 
+```
 
 
 
