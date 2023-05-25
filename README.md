@@ -395,18 +395,56 @@ Go 中切片扩容的策略是这样的：
 
 如果旧切片长度大于等于1024，则最终容量（newCap）从旧容量（oldCap）开始循环增加原来的 1/4，即 (newCap = oldCap + 1/4*oldCap) = ( oldCap * 1.25)
 
+## map
+要求所有的key的数据类型相同，所有value数据类型相同(注：key与value可以有不同的数据类型)
+### map创建
+```
+//1. 直接声明
+m1 := map[string]string{
+	"name": "zhangsan",
+}
+fmt.Printf("%v\n", m1)  //map[name:zhangsan]
 
+//2. make函数
+m2 := make(map[string]int) //创建时，里面不需要添加元素
+m2["age"] = 18
+fmt.Printf("%v\n", m2)  //  map[age:18]
+```
+### map中key的类型
+map中的每个key在keys的集合中是唯一的，而且需要支持 == or != 操作
 
+key的常用类型：int, rune, string, 结构体(每个元素需要支持 == or != 操作), 指针, 基于这些类型自定义的类型
 
+### map的增删查改
+```
+m := map[string]string{
+	"a": "va",
+	"b": "vb",
+	"d":"",
+}
 
+//  1. 进行增加，修改
+m["c"] = "vc"
+m["b"] = "vb1"
+fmt.Printf("%v\n", m)
 
+//  查询，你返回空的字符串到底是没有获取到还是值本身就是这样空字符串呢
+v, ok := m["d"]
+if ok {
+	fmt.Println("找到了", v)
+}else{
+	fmt.Println("没找到")
+}
+fmt.Println(v, ok)  //  true
 
+//  删除
+delete(m, "a")
 
-
-
-
-
-
+//  遍历
+for k, v := range m {
+	fmt.Println(k, v)
+}
+```
 
 
 
