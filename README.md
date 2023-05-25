@@ -298,6 +298,7 @@ fmt.Println("length of a is",len(array2))
 ### 什么是切片
 Go 数组的长度不可变，在特定场景中这样的集合就不太适用，因此Go提供了一种灵活、功能强悍的内置类型切片（”动态数组“），与数组相比，切片的长度是不固定的，可以追加元素，在追加时可能使切片的容量增大
 
+数组的传递是值传递 切片是引用传递
 #### 定义切片
 ```
 //  第一种
@@ -309,27 +310,90 @@ slice1 := make([]type, len)
 
 //  第三种，通过对数组操作返回
 course := [5]string{"Java", "Python", "C++", "PHP", "Go"}
-subCourse := course[1:2]
+subCourse := course[1:2]    //  [1:2] 左闭右开区间，即 取第二个值
 fmt.Println(subCourse) // [Python]
+
+// 第四种，new 
+subCourse2 := new([]int)
+fmt.Println(subCourse2)
 ```
-### 切片初始化
+#### 切片是引用传递
 ```
-
+oldArr := [3]int{1, 2, 3}
+newArr := oldArr
+newArr[0] = 5
+fmt.Println(newArr, oldArr) // [5 2 3] [1 2 3]
+// ----------------------------------------------------------------
+oldSlice := []int{1, 2, 3}
+newSlice := oldSlice
+newSlice[0] = 5
+fmt.Println(oldSlice, newSlice) // [5 2 3] [5 2 3]
 ```
+#### 切片的 append 方法
+```
+newCourse := []string{"Java", "Python", "C++", "Go", "PHP"}
+appendCourse := []string{"Vue", "React", "angular"}
+newCourse = append(newCourse, appendCourse...)  //  函数的传递规则
+fmt.Println(newCourse) // [Java Python C++ Go PHP Vue React angular]
+```
+#### 切片如何实现新切片的赋值
+```
+//  拷贝的时候 目标对象长度需要设置好
+oldCourse := []string{"Java", "Python", "C++", "Go", "PHP"}
+newCourse := make([]string, len(oldCourse))
+copy(newCourse, oldCourse)
+```
+#### 切片如何删除元素
+```
+deleteCourses := [6]string{"Java", "Python", "Vue", "C++", "Go", "PHP"}
+courseSlice := deleteCourses[:]
+courseSlice = append(courseSlice[:2], courseSlice[3:]...)
+fmt.Println(courseSlice) // [Java Python C++ Go PHP]
+```
+#### 切片的扩容机制
+```
+a := []int{1, 2, 3}
+b := a[:]
+b = append(b, 4)
+b[0] = 5
+fmt.Println(a)  // [1 2 3]
+fmt.Println(b)  // [5 2 3 4]
+```
+由上述代码可以看出，append函数没有影响到原来的数组；这是因为切片 b 产生扩容机制，扩容机制一旦产生，这个时候切片 b 就会指向新的内存地址。
+#### 切片的容量 cap
+cap指的是容量，跟长度 len 不是一个概念，
+```
+data := [10]int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
+slice := data[2:4]
+newSlice := data[3:6]
+fmt.Printf("len=%d, cap=%d\n", len(slice), cap(slice))  //  len=2, cap=8
+fmt.Printf("len=%d, cap=%d\n", len(newSlice), cap(newSlice))    //  len=3, cap=7
+```
+//  TODO 解释
+```
+oldSlice := make([]int, 0)
+fmt.Printf("len=%d, cap=%d\n", len(oldSlice), cap(oldSlice))    // len=0, cap=0
+oldSlice = append(oldSlice, 1)
+fmt.Printf("len=%d, cap=%d\n", len(oldSlice), cap(oldSlice))    // len=1, cap=1
+oldSlice = append(oldSlice, 2)
+fmt.Printf("len=%d, cap=%d\n", len(oldSlice), cap(oldSlice))    // len=2, cap=2
+oldSlice = append(oldSlice, 3)
+fmt.Printf("len=%d, cap=%d\n", len(oldSlice), cap(oldSlice))    // len=3, cap=4
+oldSlice = append(oldSlice, 4)
+oldSlice = append(oldSlice, 5)
+oldSlice = append(oldSlice, 6)
+oldSlice = append(oldSlice, 7)
+fmt.Printf("len=%d, cap=%d\n", len(oldSlice), cap(oldSlice))    // len=7, cap=8
+oldSlice = append(oldSlice, 8)
+oldSlice = append(oldSlice, 9)
+fmt.Printf("len=%d, cap=%d\n", len(oldSlice), cap(oldSlice))    // len=7, cap=8
+```
+由此可以看出，扩容的规律 0->1->2->4->8->16->...->n（注意，需要保证切片的长度小于 1024 的情况下）
 
+Go 中切片扩容的策略是这样的：
+如果旧切片的长度小于1024，则最终容量(newCap)就是旧容量(oldCap)的两倍，即（newCap = oldCap * 2）
 
-
-
-
-
-
-
-
-
-
-
-
-
+如果旧切片长度大于等于1024，则最终容量（newCap）从旧容量（oldCap）开始循环增加原来的 1/4，即 (newCap = oldCap + 1/4*oldCap) = ( oldCap * 1.25)
 
 
 
