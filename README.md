@@ -317,7 +317,7 @@ fmt.Println(subCourse) // [Python]
 subCourse2 := new([]int)
 fmt.Println(subCourse2)
 ```
-#### 切片是引用传递
+### 切片是引用传递
 ```
 oldArr := [3]int{1, 2, 3}
 newArr := oldArr
@@ -329,28 +329,28 @@ newSlice := oldSlice
 newSlice[0] = 5
 fmt.Println(oldSlice, newSlice) // [5 2 3] [5 2 3]
 ```
-#### 切片的 append 方法
+### 切片的 append 方法
 ```
 newCourse := []string{"Java", "Python", "C++", "Go", "PHP"}
 appendCourse := []string{"Vue", "React", "angular"}
 newCourse = append(newCourse, appendCourse...)  //  函数的传递规则
 fmt.Println(newCourse) // [Java Python C++ Go PHP Vue React angular]
 ```
-#### 切片如何实现新切片的赋值
+### 切片如何实现新切片的赋值
 ```
 //  拷贝的时候 目标对象长度需要设置好
 oldCourse := []string{"Java", "Python", "C++", "Go", "PHP"}
 newCourse := make([]string, len(oldCourse))
 copy(newCourse, oldCourse)
 ```
-#### 切片如何删除元素
+### 切片如何删除元素
 ```
 deleteCourses := [6]string{"Java", "Python", "Vue", "C++", "Go", "PHP"}
 courseSlice := deleteCourses[:]
 courseSlice = append(courseSlice[:2], courseSlice[3:]...)
 fmt.Println(courseSlice) // [Java Python C++ Go PHP]
 ```
-#### 切片的扩容机制
+### 切片的扩容机制
 ```
 a := []int{1, 2, 3}
 b := a[:]
@@ -360,7 +360,7 @@ fmt.Println(a)  // [1 2 3]
 fmt.Println(b)  // [5 2 3 4]
 ```
 由上述代码可以看出，append函数没有影响到原来的数组；这是因为切片 b 产生扩容机制，扩容机制一旦产生，这个时候切片 b 就会指向新的内存地址。
-#### 切片的容量 cap
+### 切片的容量 cap
 cap指的是容量，跟长度 len 不是一个概念，
 ```
 data := [10]int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
