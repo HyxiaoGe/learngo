@@ -387,6 +387,7 @@ newSlice = append(newSlice, 4)
 newSlice = append(newSlice, 5)
 newSlice = append(newSlice, 6)
 newSlice = append(newSlice, 7)
+// 此时触发扩容机制，newSlice 重新分配内存，这就会导致 newSlice 和 oldSlice 不再共享内存，所以对 newSlice 做任何修改，对 oldSlice 不会再起作用
 newSlice[0] = 2
 fmt.Printf("oldSlice: %v\n", oldSlice) // oldSlice: [1 0 0 0 0 0]
 fmt.Printf("len=%d, cap=%d\n", len(oldSlice), cap(oldSlice)) // len=6, cap=12
