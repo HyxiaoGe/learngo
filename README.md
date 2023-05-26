@@ -371,22 +371,27 @@ fmt.Printf("len=%d, cap=%d\n", len(newSlice), cap(newSlice))    //  len=3, cap=7
 ```
 //  TODO 解释
 ```
-oldSlice := make([]int, 0)
-fmt.Printf("len=%d, cap=%d\n", len(oldSlice), cap(oldSlice))    // len=0, cap=0
-oldSlice = append(oldSlice, 1)
-fmt.Printf("len=%d, cap=%d\n", len(oldSlice), cap(oldSlice))    // len=1, cap=1
-oldSlice = append(oldSlice, 2)
-fmt.Printf("len=%d, cap=%d\n", len(oldSlice), cap(oldSlice))    // len=2, cap=2
-oldSlice = append(oldSlice, 3)
-fmt.Printf("len=%d, cap=%d\n", len(oldSlice), cap(oldSlice))    // len=3, cap=4
-oldSlice = append(oldSlice, 4)
-oldSlice = append(oldSlice, 5)
-oldSlice = append(oldSlice, 6)
-oldSlice = append(oldSlice, 7)
-fmt.Printf("len=%d, cap=%d\n", len(oldSlice), cap(oldSlice))    // len=7, cap=8
-oldSlice = append(oldSlice, 8)
-oldSlice = append(oldSlice, 9)
-fmt.Printf("len=%d, cap=%d\n", len(oldSlice), cap(oldSlice))    // len=7, cap=8
+oldSlice := make([]int, 6, 12)
+newSlice := oldSlice[:]
+newSlice = append(newSlice, 1)
+
+newSlice[0] = 1
+fmt.Printf("oldSlice: %v\n", oldSlice)	// oldSlice: [1 0 0 0 0 0]
+fmt.Printf("len=%d, cap=%d\n", len(oldSlice), cap(oldSlice)) // len=6, cap=12 
+fmt.Printf("newSlice: %v\n", newSlice) // newSlice: [1 0 0 0 0 0 1]
+fmt.Printf("len=%d, cap=%d\n", len(newSlice), cap(newSlice)) // len=7, cap=12 
+fmt.Printf("----------------------------------------------------------------\n")
+newSlice = append(newSlice, 2)
+newSlice = append(newSlice, 3)
+newSlice = append(newSlice, 4)
+newSlice = append(newSlice, 5)
+newSlice = append(newSlice, 6)
+newSlice = append(newSlice, 7)
+newSlice[0] = 2
+fmt.Printf("oldSlice: %v\n", oldSlice) // oldSlice: [1 0 0 0 0 0]
+fmt.Printf("len=%d, cap=%d\n", len(oldSlice), cap(oldSlice)) // len=6, cap=12
+fmt.Printf("newSlice: %v\n", newSlice) // newSlice: [2 0 0 0 0 0 1 2 3 4 5 6 7]
+fmt.Printf("len=%d, cap=%d\n", len(newSlice), cap(newSlice)) // len=13, cap=24
 ```
 Go 中切片扩容的策略是这样的：
 如果旧切片的长度小于1024，则最终容量(newCap)就是旧容量(oldCap)的两倍，即（newCap = oldCap * 2）
