@@ -388,8 +388,6 @@ oldSlice = append(oldSlice, 8)
 oldSlice = append(oldSlice, 9)
 fmt.Printf("len=%d, cap=%d\n", len(oldSlice), cap(oldSlice))    // len=7, cap=8
 ```
-由此可以看出，扩容的规律 0->1->2->4->8->16->...->n（注意，需要保证切片的长度小于 1024 的情况下）
-
 Go 中切片扩容的策略是这样的：
 如果旧切片的长度小于1024，则最终容量(newCap)就是旧容量(oldCap)的两倍，即（newCap = oldCap * 2）
 
