@@ -498,6 +498,8 @@ var p *int = new(int)
 ```
 
 ## 函数
+### 定义函数
+
 函数的几个要素： 1. 函数名 2. 参数 3. 返回值
 下面来看看常用的函数定义方法
 ```
@@ -531,6 +533,108 @@ func div2(a, b int) (result int,err error) {
      return
 }
 ```
+
+### 匿名函数
+
+```
+fmt.Println(func (a, b int) int{
+	return a+b 
+}(1,2))
+```
+
+### 函数的参数类型
+
+可以使用 省略号 来起到可变参数的作用
+```
+func add(params ...int) (sum int){
+     for _, v := range params {
+	sum += v
+     }
+     params[0] = 9
+     return
+}
+```
+
+函数也可以当做参数传递给一个函数
+```
+var mySub sub = func (a, b int) int {
+	return a - b
+}
+fmt.Println(mySub(1,2))
+```
+
+```
+score := []int{10, 50, 80, 90, 85}
+// 写一个函数过滤掉不合格的成绩
+fmt.Println(filter(score, func (a int) bool{
+	if a>=90{
+		return true
+	}else {
+		return false
+	}
+}))
+
+func filter(score []int, f func(int) bool) []int{
+	reSlice := make([]int, 0)
+	for _, v := range score {
+		if f(v) {
+			reSlice = append(reSlice, v)
+		}
+	}
+	return reSlice
+}
+```
+
+### defer函数
+
+defer 语句是go语言用的一种用于注册延迟调用的机制，可以让当前函数执行完成之后再执行
+```
+func main() {
+	fmt.Println("test1")
+	//defer之后只能是函数调用 不能是表达式 比如 a++
+	defer fmt.Println("defer test1")
+	defer fmt.Println("defer test2")
+	defer fmt.Println("defer test3")
+	//此处有大量的逻辑需要读取文件
+	fmt.Println("test2")
+}
+```
+// 输出
+test1
+test2
+defer test3
+defer test2
+defer test1
+
+```
+func main()  {
+     //defer语句执行时的拷贝机制
+     test := func () {
+     	fmt.Println("test1")
+     }
+     defer test()
+     test = func () {
+     	fmt.Println("test2")
+     }
+     fmt.Println("test3")
+}
+```
+// 输出
+test3
+test1
+
+defer本质上是注册了一个延迟函数，defer函数的执行顺序已经确定，类似于栈的数据结构，先进后出
+
+
+
+
+
+
+
+
+
+
+
 
 
 
