@@ -497,8 +497,40 @@ var p *int = new(int)
 *p = 10
 ```
 
+## 函数
+函数的几个要素： 1. 函数名 2. 参数 3. 返回值
+下面来看看常用的函数定义方法
+```
+// 第一种
+func add(a, b int) int {
+     var sum int
+     sum = a + b
+     return sum
+}
 
+//第二种
+func add2(a, b int) (sum int) {
+     sum = a + b
+     return sum
+}
 
+//第三种
+func add3(a, b int) (sum int) {
+	sum = a + b
+	return
+}
+
+//第4种
+func div2(a, b int) (result int,err error) {
+     if b == 0 {
+     	err = errors.New("被除数不能为0")
+     }else{
+	result = a / b
+     }
+
+     return
+}
+```
 
 
 
