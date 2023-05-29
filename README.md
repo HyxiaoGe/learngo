@@ -625,7 +625,103 @@ test1
 
 defer本质上是注册了一个延迟函数，defer函数的执行顺序已经确定，类似于栈的数据结构，先进后出
 
+## 结构体
 
+type Course struct {
+	Name  string
+	Price int
+	Url   string
+}
+
+func (c Course) printCourseInfo() {
+	fmt.Printf("课程名:%s, 课程价格: %d, 课程的地址:%s", c.Name, c.Price, c.Url)
+}
+
+func (c *Course) setPrice(price int) {
+	c.Price = price
+}
+
+//1. 结构体的方法只能和结构体在同一个包中
+//2. 内置的int类型不能加方法
+func main() {
+
+	//1. 实例化- kv形式
+
+	var c Course = Course{
+		Name:  "django",
+		Price: 100,
+		Url:   "https://www.imooc.com",
+	}
+
+	//一个包中的变量或者结构体如果首字母是小写 那么对于另一个包不可见
+
+	//访问
+	fmt.Println(c.Name, c.Price, c.Url)
+
+	//2. 第二种实例化方式 - 顺序形式
+	c2 := Course{"scrappy", 200, "https://www.imooc.com"}
+	fmt.Println(c2.Name, c2.Price, c2.Url)
+
+	//3. 如果一个指向结构体的指针, 通过结构体指针获取对象的值
+	c3 := &Course{"tornado", 300, "https://www.imooc.com"}
+	//fmt.Printf("%T\n", c3)
+	fmt.Println((*c3).Name, (*c3).Price, (*c3).Url) //这里其实是go语言的一个语法糖 go语言内部会将c3.Name转换成 (*c3).Name
+
+	//4. 零值 如果不给结构体赋值， go语言会默认给每个字段采用默认值
+	c4 := Course{}
+	fmt.Println(c4.Price)
+
+	//5. 多种方式零值初始结构体
+	var c5 Course = Course{}
+	var c6 Course
+	var c7 *Course = new(Course)
+	var c8 *Course = &Course{}
+
+	fmt.Println(c5.Price, c6.Price, c7.Price, c8.Price)
+
+	//6. 结构体是值传递类型
+	c9 := Course{"scrapy", 110, "https://www.imooc.com"}
+	c10 := c9
+	fmt.Println(c9)
+	fmt.Println(c10)
+	c8.Price = 200
+	fmt.Println(c9)
+	fmt.Println(c10)
+
+	//7. 结构体的大小 占用内存的大小 可以使用sizeof来查看对象占用内存的类型
+	fmt.Println(unsafe.Sizeof(1))
+	fmt.Println(unsafe.Sizeof("scrapy"))
+
+	// go语言string的本质 其实string是个结构体
+	//type string struct {
+	//	Data uintptr //指针占8个长度
+	//	Len  int     //长度64位系统8个长度
+	//}
+	fmt.Println(unsafe.Sizeof(c9))
+
+	//8.slice的大小
+	type slice struct {
+		array unsafe.Pointer // 底层数组的地址 8个长度
+		len   int            // 长度 8个长度
+		cap   int            // 容量 8个长度
+	}
+
+	s1 := []string{"scrapy", "django", "tornado", "flask", "beego", "gin"}
+	fmt.Println(unsafe.Sizeof(s1))
+
+	m1 := map[string]string{
+		"bobby1": "django",
+		"bobby2": "tornado",
+		"bobby3": "scrapy",
+		"bobby4": "celery",
+	}
+	fmt.Println(unsafe.Sizeof(m1))
+
+	//	结构体方法
+	c9.setPrice(200)
+	c9.printCourseInfo()
+
+	//结构体的接收者有两种形式 值接收者和指针接收者
 
 
 
