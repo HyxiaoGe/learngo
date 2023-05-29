@@ -724,7 +724,35 @@ func main() {
 	//结构体的接收者有两种形式 值接收者和指针接收者
 
 
+## 继承
 
+type Teacher struct {
+	Name  string
+	Age   int
+	Title string
+}
+
+func (t *Teacher) PrintInfo() {
+	println(t.Name, t.Age, t.Title)
+}
+
+type Course struct {
+	Teacher *Teacher
+	Name    string
+	Price   int
+	Url     string
+}
+
+func (c Course) courseInfo() {
+	fmt.Printf("课程名:%s, 价格:%d, 链接:%s, 讲师信息：%s %d %s", c.Name, c.Price, c.Url, c.Teacher.Name, c.Teacher.Age, c.Teacher.Title)
+}
+
+func main() {
+
+	t := Teacher{"zhangsan", 18, "程序员"}
+	c := Course{Teacher: &t, Name: "django", Price: 100, Url: "https://www.imooc.com"}
+	c.courseInfo()
+}
 
 
 
