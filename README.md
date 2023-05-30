@@ -753,7 +753,27 @@ func main() {
 }
 ```
 
+## 接口
+在go语言中接口是一种类型，是一种抽象类型
 
+代码实现
+```
+type Programmer interface {
+	Coding() string //方法只是申明
+	Debug() string
+}
+type Designer interface {
+	Design() string
+}
+type Manger interface {
+	Programmer
+	Designer
+	Manage() string
+}
+
+
+
+```
 
 
 
