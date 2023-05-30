@@ -626,7 +626,11 @@ test1
 defer本质上是注册了一个延迟函数，defer函数的执行顺序已经确定，类似于栈的数据结构，先进后出
 
 ## 结构体
-
+结构体的方法只能和结构体在同一个包中
+一个包中的变量或者结构体如果首字母是小写 那么对于另一个包不可见
+结构体是值传递类型
+结构体的接收者有两种形式 值接收者和指针接收者
+```
 type Course struct {
 	Name  string
 	Price int
@@ -641,31 +645,25 @@ func (c *Course) setPrice(price int) {
 	c.Price = price
 }
 
-//1. 结构体的方法只能和结构体在同一个包中
-//2. 内置的int类型不能加方法
 func main() {
 
 	//1. 实例化- kv形式
 
 	var c Course = Course{
-		Name:  "django",
-		Price: 100,
-		Url:   "https://www.imooc.com",
+		Name:  "Go从入门到放弃",
+		Price: 9.9,
+		Url:   "https://go.dev/",
 	}
 
-	//一个包中的变量或者结构体如果首字母是小写 那么对于另一个包不可见
-
-	//访问
-	fmt.Println(c.Name, c.Price, c.Url)
-
 	//2. 第二种实例化方式 - 顺序形式
-	c2 := Course{"scrappy", 200, "https://www.imooc.com"}
+	c2 := Course{"Go从入门到放弃", 9.9, "https://go.dev/"}
 	fmt.Println(c2.Name, c2.Price, c2.Url)
 
 	//3. 如果一个指向结构体的指针, 通过结构体指针获取对象的值
-	c3 := &Course{"tornado", 300, "https://www.imooc.com"}
+	c3 := &Course{"Go从入门到放弃", 9.9, "https://go.dev/"}
 	//fmt.Printf("%T\n", c3)
-	fmt.Println((*c3).Name, (*c3).Price, (*c3).Url) //这里其实是go语言的一个语法糖 go语言内部会将c3.Name转换成 (*c3).Name
+	fmt.Println((*c3).Name, (*c3).Price, (*c3).Url) // 等同于下面 
+	fmt.Println(c3.Name, c3.Price, c3.Url)  //这里其实是go语言的一个语法糖 go语言内部会将c3.Name转换成 (*c3).Name
 
 	//4. 零值 如果不给结构体赋值， go语言会默认给每个字段采用默认值
 	c4 := Course{}
@@ -680,7 +678,7 @@ func main() {
 	fmt.Println(c5.Price, c6.Price, c7.Price, c8.Price)
 
 	//6. 结构体是值传递类型
-	c9 := Course{"scrapy", 110, "https://www.imooc.com"}
+	c9 := Course{"scrapy", 110, "https://go.dev/"}
 	c10 := c9
 	fmt.Println(c9)
 	fmt.Println(c10)
@@ -721,11 +719,11 @@ func main() {
 	c9.setPrice(200)
 	c9.printCourseInfo()
 
-	//结构体的接收者有两种形式 值接收者和指针接收者
+```
 
 
 ## 继承
-
+```
 type Teacher struct {
 	Name  string
 	Age   int
@@ -750,10 +748,10 @@ func (c Course) courseInfo() {
 func main() {
 
 	t := Teacher{"zhangsan", 18, "程序员"}
-	c := Course{Teacher: &t, Name: "django", Price: 100, Url: "https://www.imooc.com"}
+	c := Course{Teacher: &t, Name: "django", Price: 100, Url: "https://go.dev/"}
 	c.courseInfo()
 }
-
+```
 
 
 
