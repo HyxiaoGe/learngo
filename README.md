@@ -626,10 +626,11 @@ test1
 defer本质上是注册了一个延迟函数，defer函数的执行顺序已经确定，类似于栈的数据结构，先进后出
 
 ## 结构体
-结构体的方法只能和结构体在同一个包中
-一个包中的变量或者结构体如果首字母是小写 那么对于另一个包不可见
-结构体是值传递类型
-结构体的接收者有两种形式 值接收者和指针接收者
+Go 语言不是面向对象的语言，它里面不存在类的概念，结构体正是类的替代品。
+- 结构体内部变量的大小写，首字母大写是公开变量，首字母小写是内部变量，分别相当于Java的类成员变量的 Public 和 Private 类别。内部变量只有属于同一个 package（简单理解就是同一个目录）的代码才能直接访问。
+- 结构体的方法只能和结构体在同一个包中
+- 结构体是值传递类型
+- 结构体的接收者有两种形式 值接收者和指针接收者
 ```
 type Course struct {
 	Name  string
@@ -647,8 +648,7 @@ func (c *Course) setPrice(price int) {
 
 func main() {
 
-	//1. 实例化- kv形式
-
+	// 1. 实例化- kv形式
 	var c Course = Course{
 		Name:  "Go从入门到放弃",
 		Price: 9.9,
@@ -685,17 +685,22 @@ func main() {
 	c8.Price = 200
 	fmt.Println(c9)
 	fmt.Println(c10)
+```
 
-	//7. 结构体的大小 占用内存的大小 可以使用sizeof来查看对象占用内存的类型
-	fmt.Println(unsafe.Sizeof(1))
-	fmt.Println(unsafe.Sizeof("scrapy"))
+### 结构体的大小
+
+结构体可以使用sizeof来查看对象占用内存的长度
+
+```
+	// int 占用8个长度
+	fmt.Println(unsafe.Sizeof(1))   // 8
 
 	// go语言string的本质 其实string是个结构体
 	//type string struct {
 	//	Data uintptr //指针占8个长度
 	//	Len  int     //长度64位系统8个长度
 	//}
-	fmt.Println(unsafe.Sizeof(c9))
+	fmt.Println(unsafe.Sizeof("scrapy"))    // 16
 
 	//8.slice的大小
 	type slice struct {
@@ -705,24 +710,28 @@ func main() {
 	}
 
 	s1 := []string{"scrapy", "django", "tornado", "flask", "beego", "gin"}
-	fmt.Println(unsafe.Sizeof(s1))
+	fmt.Println(unsafe.Sizeof(s1)) // 24
 
+    // map 固定占用8个长度，跟kv无关
 	m1 := map[string]string{
 		"bobby1": "django",
 		"bobby2": "tornado",
 		"bobby3": "scrapy",
 		"bobby4": "celery",
 	}
-	fmt.Println(unsafe.Sizeof(m1))
-
-	//	结构体方法
-	c9.setPrice(200)
-	c9.printCourseInfo()
+	fmt.Println(unsafe.Sizeof(m1))  // 8
 
 ```
+#### 零值结构体和 nil 结构体
 
+nil 结构体是指结构体指针变量没有指向一个实际存在的内存。这样的指针变量只会占用 1 个指针的存储空间，也就是一个机器字的内存大小。（如果只是单单声明变量，没有声明new函数来申请内存空间的话，那么该变量还是会占用内存空间，只不过占用的是 nil ）
+而零值结构体是会实实在在占用内存空间的，只不过每个字段都是零值。如果结构体里面字段非常多，那么这个内存空间占用肯定也会很大。
 
 ## 继承
+
+Go 里面没有继承的概念，但是也可以达到伪继承的效果。结构体作为一种变量它可以放进另外一个结构体作为一个字段来使用，这种内嵌结构体的形式在 Go 语言里称之为「组合」。
+下面我们来看看内嵌结构体的基本使用方法
+
 ```
 type Teacher struct {
 	Name  string
@@ -752,6 +761,10 @@ func main() {
 	c.courseInfo()
 }
 ```
+
+## 多态
+
+Go 语言不是面向对象语言在于它的结构体不支持多态，它不能算是一个严格的面向对象语言。多态是指父类定义的方法可以调用子类实现的方法，不同的子类有不同的实现，从而给父类的方法带来了多样的不同行为。
 
 ## 接口
 在go语言中接口是一种类型，是一种抽象类型
