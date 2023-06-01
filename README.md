@@ -809,91 +809,197 @@ Go 语言规范定义了接口方法集的调用规则：
 
 ### 空接口
 
-```
-type Course struct {
-name string
-price int
-url string
-}
-type Printer interface {
-printInfo() string
-}
-
-func (c Course) printInfo() string{
-return "课程信息"
-}
-
-//func print(x interface{}){
-//	if v, ok := x.(int); ok{
-//		fmt.Printf("%d(整数)\n", v)
-//	}
-//	if s, ok := x.(string); ok {
-//		fmt.Printf("%s(字符串)\n", s)
-//	}
-//	//牵扯到go的另一个默认的问题
-//	//fmt.Printf("%v\n", i)
-//}
-
-type AliOss struct {
-
-}
-
-type LocalFile struct {
-
-}
-
-func store(x interface{}){
-switch v := x.(type) {
-case AliOss:
-//此处要做一些特殊的处理，我设置阿里云的权限问题
-fmt.Println(v)
-case LocalFile:
-//检查路径的权限
-fmt.Println(v)
-}
-}
-
-func print(x interface{}){
-switch v := x.(type) {
-case string:
-fmt.Printf("%s(字符串)\n", v)
-case int:
-fmt.Printf("%d(整数)\n", v)
-}
-}
-
-
-func main()  {
-//空接口
-var i interface {} //空接口
-//空接口可以类似于我们java和python中的object
-//i = Course{}
-//fmt.Println(i)
-i = 10
-print(i)
-i = "bobby"
-print(i)
-i = []string{"django", "scrapy"}
-print(i)
-//空接口的第一个用途 可以把任何类型都赋值给空接口变量
-//2. 参数传递
-//3. 空接口可以作为map的值
-var teacherInfo = make(map[string]interface{})
-teacherInfo["name"] = "bobby"
-teacherInfo["age"] = 18
-teacherInfo["weight"] = 75.2
-teacherInfo["courses"] = []string{"django", "scrapy", "sanic"}
-fmt.Printf("%v", teacherInfo)
-//类型断言
-//接口的一个坑, 接口引入了
-// 接口有一个默认的规范  接口的名称一般以 er结尾
-//c := &Course{}
-//var c Printer = Course{}
-//c.printInfo()
-
-}
+空接口或最小接口 不包含任何方法，它对实现不做任何要求：
 
 ```
+type Any interface {}
+```
+
+空接口类似于 Java 里所有类的基类 Object 类，可以给一个空接口类型的变量 var val interface {} 赋任何类型的值
+
+```
+var i = 5
+var str = "ABC"
+
+type Person struct {
+	name string
+	age  int
+}
+
+type Any interface{}
+
+func main() {
+
+	var val Any
+	val = i
+	fmt.Printf("val has the value: %v\n", val)
+	val = str
+	fmt.Printf("val has the value: %v\n", val)
+
+	pers1 := new(Person)
+	pers1.name = "Rob Pike"
+	pers1.age = 55
+	val = pers1
+	fmt.Printf("val has the value: %v\n", val)
+
+	switch t := val.(type) {
+	case int:
+		fmt.Printf("Type int %T\n", t)
+	case string:
+		fmt.Printf("Type string %T\n", t)
+	case bool:
+		fmt.Printf("Type boolean %T\n", t)
+	case *Person:
+		fmt.Printf("Type pointer to Person %T\n", t)
+	default:
+		fmt.Printf("Unexpected type %T", t)
+	}
+
+}
+```
+
+## 反射
+
+### 方法和类型的反射
+
+反射是用程序检查其所拥有的结构，尤其是类型的一种能力；这是元编程的一种形式。反射可以在运行时检查类型和变量，例如：他的大小、它的方法以及它能”动态地“调用这些方法。这对于没有源代码的包尤其有用。
+
+变量的最基本信息就是类型和值：反射包的 Type 用来表示一个 Go 类型，反射包的 Value 为 Go 值提供了反射接口。
+
+两个简单的函数，reflect.TypeOf 和 reflect.ValueOf，返回被检查对象的类型和值。例如，x被定义为：var x float64 = 3.4，那么reflect.TypeOf(x) 返回 float64，reflect.ValueOf(x) 返回 <float64 Value>
+
+实际上，反射是通过检查一个接口的值，变量首先被转换成空接口。
+
+```
+func TypeOf(i interface{}) Type
+func Value(i interface{}) Value
+```
+
+接口的值包含一个 type 和 value
+
+反射可以从接口值反射到对象，也可以从对象反射回接口值
+
+### 通过反射修改（设置）值
+
+```
+func main() {
+
+	var x float64 = 3.14
+	v := reflect.ValueOf(x)
+	//v.SetFloat(1.0) //panic: reflect: reflect.Value.SetFloat using unaddressable value
+
+	fmt.Println("settability of v:", v.CanSet())
+	v = reflect.ValueOf(&x)
+	fmt.Println("type of v:", v.Type())
+	fmt.Println("settability of v:", v.CanSet())
+
+	v = v.Elem()
+	fmt.Println("settability of v:", v.CanSet())
+	fmt.Println("The Elem of v is:", v)
+	v.SetFloat(3.1415)
+	fmt.Println(v.Interface())
+	fmt.Println(v)
+}
+```
+
+以上代码当修改 v 的值时，会报 reflect.Value.SetFloat using unaddressable value ；
+类似于Java里修改 private 修饰的变量，要想通过反射来修改它，只能特定的方法来开启安全检查的开关，Java 是 field.setAccessible(true);
+go 里面是用 Elem() 来开启，就可以正常地赋值了
+
+### 反射结构
+
+当需要反射一个结构类型。NumField() 方法返回结构内的字段数量；通过一个 for 循环用索引取得每个字段的值 Field(i)。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
