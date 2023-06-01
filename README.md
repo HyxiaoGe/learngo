@@ -910,12 +910,40 @@ go 里面是用 Elem() 来开启，就可以正常地赋值了
 
 当需要反射一个结构类型。NumField() 方法返回结构内的字段数量；通过一个 for 循环用索引取得每个字段的值 Field(i)。
 
+```
+type NotknownType struct {
+	s1, s2, s3 string
+}
 
+func (n NotknownType) String() string {
+	return n.s1 + "-" + n.s2 + "-" + n.s3
+}
 
+var secret interface{} = NotknownType{"Ada", "Go", "Oberon"}
 
+func main() {
+	value := reflect.ValueOf(secret)
+	typ := reflect.TypeOf(secret)
 
+	fmt.Println(typ)
+	knd := value.Kind()
+	fmt.Println(knd)
 
+	for i := 0; i < value.NumField(); i++ {
+		fmt.Printf("Field %d: %v\n", i, value.Field(i))
+	}
+	results := value.Method(0).Call(nil)
+	fmt.Println(results)
 
+}
+```
+
+## 总结：Go中的面向对象
+
+Go 没有类，而是松耦合的类型、方法对接口的实现
+- 封装（数据隐藏）：包范围内的：通过标识符首字母小写，对象只在它所在的包内可见；包范围外的，即可以直接import的，通过标识符首字母大写，对象所在包以外也可见
+- 继承：用组合实现：内嵌一个（或多个）包含想要的行为（字段和方法）的类型；多重继承可以通过内嵌多个类型实现
+- 多态：用接口实现：某个类型的实例可以赋给它所实现的任意接口类型的变量。类型和接口是松耦合的，并且多重继承可以通过实现多个接口实现。Go 接口不是 Java 和 C# 接口的变体，而且接口间是不相关的，并且是大规模编程和可适应的演进型设计的关键。
 
 
 
