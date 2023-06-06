@@ -1027,17 +1027,67 @@ buf 是通道可以同时容纳的元素个数
 
 缓冲容量和类型无关，所以可以给一些通道设置不同的容量，只要他们拥有同样的元素类型。内置的 cap() 函数可以返回缓冲区的容量。
 
+如果容量大于 0，通道就是异步的了：缓冲满载（发送）或变空（接收）之前通信不会阻塞，元素会按照发送的顺序被接收。如果容量是 0 或者未设置，通信仅在收发双方准备好的情况下才可以成功。
 
+下面看下通道不为0的时候，延迟发送数据
+```
 
+import (
+"fmt"
+"time"
+)
 
+func getData(ch chan int) {
+    input := <-ch
+    fmt.Println(input)
+}
 
+func main() {
+    ch1 := make(chan int, 1)
+    ch1 <- 1
+    go getData(ch1)
+    time.Sleep(time.Second * 5)
+}
+```
 
+#### 协程的同步-关闭通道
 
+通道可以被显式的关闭；尽管它们和文件不同，不必每次都关闭。只有在需要告诉接收者不会再提供新的值的时候，才需要关闭通道。只有发送者需要关闭通道，接收者不需要。
 
+可以通过函数 close(ch) 来完成，将通道标记为无法通过发送操作 <- 接收更多的值，给已经关闭的通道发送或者再次关闭都会导致运行时的 panic()。
+```
+ch := make(chan float64)
+defer close(ch)
+```
 
-
-
-
+可以通过逗号 ok模式用来检测通道是否被关闭
+通常和 if 语句一起使用
+```
+if v, ok := <- ch; ok{
+   process(v)
+}
+```
+或者在for循环中接收的时候，使用break来控制
+```
+v, ok := <- ch
+if !ok {
+   break
+}
+process(v)
+```
+检测通道当前是否堵塞，需要使用select
+```
+select {
+case v, ok := <-ch:
+  if ok {
+    process(v)
+  } else {
+    fmt.Println("The channel is closed")
+  }
+default:
+  fmt.Println("The channel is blocked")
+}
+```
 
 
 
