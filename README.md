@@ -1088,14 +1088,76 @@ default:
   fmt.Println("The channel is blocked")
 }
 ```
+### 使用 select 切换协程
 
+从不同的并发执行的协程中获取值可以通过关键字 select 来完成，它和 switch 控制语句非常相似也称作通信开关；它的行为类似于轮询机制；select 监听进入通道的数据，也可以是用通道发送值的时候。
+```
+select {
+    case u:= <- ch1:
+    ...
+    case v:= <- ch2:
+    ...
+    ...
+    default: // no value ready to be received
+    ...
+}
+```
+在任何一个 case 中执行 break 或者 return，select 就结束了。
 
+select 做的是：选择处理列出的多个通信情况中的一个。
 
+- 如果都堵塞了，会等待直到其中一个可以处理
+- 如果多个可以选择，随机选择一个
+- 如果没有通道操作可以处理并且写了 default 语句，可以保证发送不被堵塞！如果没有 default，select 就会一直堵塞。
 
+select 语句实现了一种监听模式，通常用在（无限）循环中；在某种情况下，通过 break 语句使循环退出
 
+以下代码中，有 2 个通道 ch1 和 ch2，三个协程 pump1()、pump()2 和 suck1()。这是一个典型的生产者消费者模式。在无限循环中，ch1 和 ch2 通过 pump1() 和 pump()2 填充整数；suck1 也是在无限循环中轮询输入的，通过 select 语句获取 ch1 和 ch2 的整数并输出。
+选择哪一个 case 取决于哪一个通道收到了信息。
+```
+package main
 
+import (
+	"fmt"
+	"time"
+)
 
+func main() {
 
+	ch1 := make(chan int)
+	ch2 := make(chan int)
+
+	go pump1(ch1)
+	go pump2(ch2)
+	go suck1(ch1, ch2)
+
+	time.Sleep(10 * time.Second)
+}
+
+func pump1(ch chan int) {
+	for i := 0; ; i++ {
+		ch <- i * 2
+	}
+}
+
+func pump2(ch chan int) {
+	for i := 0; ; i++ {
+		ch <- i + 5
+	}
+}
+
+func suck1(ch1, ch2 chan int) {
+	for true {
+		select {
+		case v := <-ch1:
+			fmt.Printf("Received on channel 1: %d\n", v)
+		case v := <-ch2:
+			fmt.Printf("Received on channel 2: %d\n", v)
+		}
+	}
+}
+
+```
 
 
 
