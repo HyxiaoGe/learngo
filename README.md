@@ -1159,16 +1159,111 @@ func suck1(ch1, ch2 chan int) {
 
 ```
 
+## TCP Socket
 
+一个 Web 服务器应用需要响应众多客户端的并发请求，Go 会为每一个客户端产生一个协程来处理请求。
 
+需要用到 net 包中网络通信的功能，包含了处理 TCP/IP 以及 UDP 协议、域名解析等办法。
 
+server 代码
+```
+import (
+	"fmt"
+	"net"
+)
 
+func main() {
+	fmt.Println("Starting the server...")
+	// 创建 listener
+	listener, err := net.Listen("tcp", `localhost:7890`)
+	if err != nil {
+		fmt.Println("Error listening: ", err.Error())
+		return // 终止程序
+	}
+	// 监听并接收来自客户端的连接
+	for {
+		conn, err := listener.Accept()
+		if err != nil {
+			fmt.Println("Error listening: ", err.Error())
+			return // 终止程序
+		}
+		go doServerStuff(conn)
+	}
+}
 
+func doServerStuff(conn net.Conn) {
+	for {
+		buf := make([]byte, 512)
+		content, err := conn.Read(buf)
+		if err != nil {
+			fmt.Println("Error listening: ", err.Error())
+			return // 终止程序
+		}
+		fmt.Printf("Received data: %v", string(buf[:content]))
+	}
+}
+```
+在 main() 中创建了一个 net.Listen 类型的变量 listener，它实现了服务器的基本功能：用来监听和接收来自客户端的请求（基于 TCP 协议下，位于 IP 地址为 127.0.0.1，端口为 50000 的 localhost）。
 
+Listen() 函数可以返回一个error类型的错误变量。用一个无限 for 循环的listener.Accept() 来等待客户端的请求。客户端的请求将产生一个 net.Conn 类型的连接变量。然后一个独立的协程使用这个连接执行 doServerStuff(),
+开始使用一个 512 字节的缓冲 data 来读取客户端发送来的数据，并且把它们打印到服务器的终端，len() 获取客户端发送的数据字节数；当客户端发送的所有数据都被读取完时，协程就结束了。
 
+这段程序会为每一个客户端连接创建一个独立的协程。必须先运行服务器代码，再运行客户端代码。
 
+----------------------------------------------------------------
 
+client 代码
 
+```
+import (
+	"bufio"
+	"fmt"
+	"net"
+	"os"
+	"strings"
+)
+
+func main() {
+
+	// 打开连接
+	conn, err := net.Dial("tcp", "localhost:50000")
+	if err != nil {
+		//由于目标计算机积极拒绝而无法创建连接
+		fmt.Println("Error dialing", err.Error())
+		return // 终止程序
+	}
+
+	inputReader := bufio.NewReader(os.Stdin)
+	fmt.Println("First, what is your name?")
+	clientName, _ := inputReader.ReadString('\n')
+	fmt.Printf("CLIENTNAME %s", clientName)
+	trimmedClient := strings.Trim(clientName, "\r\n")
+	// 给服务器发送信息直到程序退出：
+	for {
+		fmt.Println("What to send to the server? Type Q to quit.")
+		input, _ := inputReader.ReadString('\n')
+		trimmedInput := strings.Trim(input, "\r\n")
+		fmt.Printf("input:--%s--", input)
+		fmt.Printf("trimmedInput:--%s--", trimmedInput)
+		if trimmedInput == "Q" {
+			return
+		}
+		_, err = conn.Write([]byte(trimmedClient + " says：" + trimmedInput))
+	}
+
+}
+
+```
+
+客户端通过 net.Dial() 创建了一个和服务器之间的连接。
+
+通过无限循环从 os.Stin 接收来自键盘的输入，直到输入了"Q"。裁剪后的输入被 connection 的 Write() 方法发送到服务器。
+
+当然，服务器必须先启动好，如果服务器并未开始监听，客户端是无法成功连接的。
+
+在网络编程中 net.Dial() 函数是非常重要的，一旦你连接到远程系统，函数就会返回一个 Conn 类型的接口，我们可以用它发送和接收数据。Dial() 函数简洁地抽象了网络层和传输层。
+
+所以不管是 IPv4 还是 IPv6，TCP 或者 UDP 都可以使用这个公用接口。
 
 
 
