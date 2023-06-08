@@ -1265,17 +1265,58 @@ func main() {
 
 所以不管是 IPv4 还是 IPv6，TCP 或者 UDP 都可以使用这个公用接口。
 
+## 访问并读取页面数据
 
+发送一个简单的 http.Head() 请求查看返回值
 
+```
+import (
+	"fmt"
+	"net/http"
+)
 
+var urls = []string{
+	"https://www.baidu.com",
+	"https://weibo.com/",
+	"https://www.taobao.com/",
+}
 
+func main() {
+	for _, url := range urls {
+		resp, err := http.Head(url)
+		if err != nil {
+			fmt.Println("Error: ", url, err)
+		}
+		fmt.Println(url, ": ", resp.Status)
+	}
+}
+```
 
+使用 http.Get() 获取并显示网页内容；Get() 返回值中的 Body 属性包含了网页内容，然后我们用 ioutil.ReadAll() 把它读出来：
 
+```
+import (
+	"fmt"
+	"io/ioutil"
+	"log"
+	"net/http"
+)
 
+func main() {
 
+	res, err := http.Get("http://www.baidu.com")
+	checkError(err)
+	data, err := ioutil.ReadAll(res.Body)
+	checkError(err)
+	fmt.Printf("Got: %q", string(data))
+}
 
-
-
+func checkError(err error) {
+	if err != nil {
+		log.Fatalf("Get : %v", err)
+	}
+}
+```
 
 
 
