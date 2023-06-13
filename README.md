@@ -1367,12 +1367,45 @@ func main() {
 }
 ```
 
+## Gin 
 
+### 介绍
 
+Gin 是一个用Go(Golang)编写的Web框架。它具有类似的 martini 的API，性能要好得多，多亏了 httprouter ，速度提高了 40 倍。
 
+### 特性
 
+- 快速，基于 Radix 树（压缩前缀树）的路由，小内存占用。没有反射。可预测的API性能
+- 支持中间件，传入的 HTTP 请求可以由一系列中间件和最终操作来处理。例如：Logger，Authorization，GZIP，最终操作DB。
+- Crash 处理，Gin 可以 catch 一个发生在 HTTP 请求中的 panic 并 recover 它。保证服务器一直可用。
+- JSON 验证，Gin 可用解析并验证请求的 JSON，例如检查所需值的存在。
+- 路由组，更好地组织路由。是否需要授权，不同的 API 版本...此外，这些组可以无限制地嵌套而不会降低性能。
+- 错误处理，Gin 提供了一种方便的方法来收集HTTP请求期间发生的所有错误。最终，中间件可以将他们写入日志文件，数据库并通过网络发送。
+- 内置渲染，Gin 为JSON，XML和HTML渲染提供了易于使用的API。
 
+### 开始
 
+```
+import (
+	"github.com/gin-gonic/gin"
+	"net/http"
+)
+
+// "github.com/gin-gonic/gin"
+func main() {
+
+	router := gin.Default()
+	router.GET("/ping", func(context *gin.Context) {
+		context.JSON(http.StatusOK, gin.H{
+			"message": "pong",
+		})
+	})
+
+	// 默认在 0.0.0.0:8080 上启动服务并监听
+	router.Run()
+
+}
+```
 
 
 
