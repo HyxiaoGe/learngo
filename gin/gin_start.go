@@ -5,7 +5,6 @@ import (
 	"net/http"
 )
 
-// "github.com/gin-gonic/gin"
 func main() {
 
 	router := gin.Default()
@@ -15,7 +14,6 @@ func main() {
 		})
 	})
 
-	// 默认在 0.0.0.0:8080 上启动服务并监听
-	router.Run()
+	router.Run(":8082")
 
 }
