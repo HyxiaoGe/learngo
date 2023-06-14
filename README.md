@@ -1685,9 +1685,21 @@ func startPage(context *gin.Context) {
 
 请求示例：http://127.0.0.1:8083/testing?name=xieguangkun&address=xiangyashan
 
+### 记录日志
+```
+func main() {
+	// 记录到文件
+	f, _ := os.Create("gin.log")
+	gin.DefaultWriter = io.MultiWriter(f)
 
+	router := gin.Default()
+	router.GET("/ping", func(context *gin.Context) {
+		context.String(http.StatusOK, "pong")
+	})
 
-
+	router.Run(":8083")
+}
+```
 
 
 
