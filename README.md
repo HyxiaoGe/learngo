@@ -1565,6 +1565,134 @@ func main() {
 }
 ```
 ### 使用 BasicAuth 中间件
+```
+var secrets = gin.H{
+	"foo":    gin.H{"email": "foo@bar.com", "phone": "123433"},
+	"austin": gin.H{"email": "austin@example.com", "phone": "666"},
+	"lena":   gin.H{"email": "lena@guapa.com", "phone": "523443"},
+}
+
+func main() {
+
+	router := gin.Default()
+	// 路由组使用 gin.BasicAuth() 中间件
+	// gin.Accounts 是map[string]string 的一种快捷方式
+	authorized := router.Group("/admin", gin.BasicAuth(gin.Accounts{
+		"foo":    "bar",
+		"austin": "1234",
+		"lena":   "hello2",
+		"manu":   "4321",
+	}))
+
+	// /admin/secrets 端点
+	// 触发 ”localhost:8080/admin/secrets“
+	authorized.GET("/secrets", func(context *gin.Context) {
+		// 获取用户，它是由 BasicAuth 中间件设置的
+		user := context.MustGet(gin.AuthUserKey).(string)
+		if secrets, ok := secrets[user]; ok {
+			context.JSON(http.StatusOK, gin.H{"user": user, "secret": secrets})
+		} else {
+			context.JSON(http.StatusOK, gin.H{"user": user, "secret": "NO SECRETS :("})
+		}
+	})
+
+	router.Run(":8083")
+}
+```
+
+### 使用 HTTP 方法
+```
+func main() {
+
+	// 使用默认中间件（logger 和 recovery 中间件）创建 gin 路由
+	router := gin.Default()
+
+	router.GET("/someGet", getting)
+	router.POST("/somePost", posting)
+	router.PUT("/somePut", putting)
+	router.DELETE("/someDelete", deleting)
+	router.PATCH("/somePatch", patching)
+	router.HEAD("/someHead", head)
+	router.OPTIONS("/someOptions", options)
+
+	// 默认在 8080 端口启动服务，除非定义了一个 PORT 的环境变量。
+	router.Run()
+	// router.Run(":8081") hardcode 端口号
+}
+```
+### 使用中间件
+```
+func main() {
+
+	// 新建一个没有任何默认中间件的路由
+	router := gin.New()
+
+	// 全局中间件
+	// Logger 中间件将日志写入 gin.DefaultWriter，即使你将 GIN_MODE 设置成 release
+	router.Use(gin.Logger())
+
+	// Recovery 中间件会 recover 任何 panic，如果有 panic 的话，会写入 500
+	router.Use(gin.Recovery())
+
+	// 你甚至为每个路由添加任意数量的中间件
+	//router.GET("/benchmark", MyBenchLogger(), benchEndpoint)
+
+	// 认证路由组
+	// authorized := router.Group("/", AuthRequired())
+	// 和使用以下两行代码的效果完全一样
+	//authorized := router.Group("/")
+	// 路由组中间件
+	// AuthRequired() 中间件
+	//authorized.Use(AuthRequired())
+	//{
+	//	authorized.POST("/login", loginEndpoint)
+	//	authorized.POST("/submit", submitEndpoint)
+	//	authorized.POST("/read", readEndpoint)
+	//
+	//	// 嵌套路由组
+	//	testing := authorized.Group("testing")
+	//	testing.GET("/analytics", analyticsEndpoint)
+	//}
+
+	router.Run()
+}
+```
+### 只绑定 url 查询字符串
+
+ShouldBindQuery 函数只绑定 url 查询参数而忽略 post 数据
+```
+type Person struct {
+	Name    string `form:"name"`
+	Address string `form:"address"`
+}
+
+func main() {
+	router := gin.Default()
+	router.Any("/testing", startPage)
+	router.Run(":8083")
+}
+
+func startPage(context *gin.Context) {
+	var person Person
+	if context.ShouldBindQuery(&person) == nil {
+		log.Println("====== Only Bind By Query String ======")
+		log.Println(person.Name)
+		log.Println(person.Address)
+	}
+	context.String(http.StatusOK, "Success")
+}
+```
+
+请求示例：http://127.0.0.1:8083/testing?name=xieguangkun&address=xiangyashan
+
+
+
+
+
+
+
+
+
 
 
 
