@@ -1394,7 +1394,9 @@ import (
 // "github.com/gin-gonic/gin"
 func main() {
 
+    // Default 使用 Logger 和 Recovery 中间件
 	router := gin.Default()
+    // gin.H 是 map[string]interface{} 的一种快捷方式
 	router.GET("/ping", func(context *gin.Context) {
 		context.JSON(http.StatusOK, gin.H{
 			"message": "pong",
@@ -1407,13 +1409,162 @@ func main() {
 }
 ```
 
+### JSONP
 
+使用 JSONP 向不同域的服务器请求数据。如果查询参数存在回调，则将回调添加到响应体中。
 
+```
+func main() {
 
+	router := gin.Default()
+	router.GET("/JSONP", func(context *gin.Context) {
+		data := map[string]interface{}{
+			"foo": "bar",
+		}
+		context.JSON(http.StatusOK, data)
+	})
 
+	router.Run()
+}
+```
+### Multipart/Urlencoded 绑定
 
+```
+func main() {
 
+	router := gin.Default()
+	router.POST("/login", func(context *gin.Context) {
+		// 可以使用显式绑定声明绑定 multipart form
+		// c.shouldBindWith(&form, binding.Form)
+		// 或者简单地使用 ShouldBind 方法自动绑定
+		var form LoginForm
+		// 在这种情况下，将自动选择合适地绑定
+		if context.ShouldBind(&form) == nil {
+			if form.User == "user" && form.Password == "password" {
+				context.JSON(http.StatusOK, gin.H{"status": "you are logged in"})
+			} else {
+				context.JSON(http.StatusUnauthorized, gin.H{"status": "unauthorized"})
+			}
+		}
+	})
 
+	router.Run()
+}
+```
+### Multipart/Urlencoded 表单
+
+```
+func main() {
+
+	router := gin.Default()
+
+	router.POST("/form_post", func(context *gin.Context) {
+		message := context.PostForm("message")
+		nick := context.DefaultPostForm("nick", "anonymous")
+
+		context.JSON(http.StatusOK, gin.H{
+			"status":  "posted",
+			"message": message,
+			"nick":    nick,
+		})
+	})
+	router.Run()
+}
+```
+### XML/JSON/YAML 渲染
+
+```
+func main() {
+
+	router := gin.Default()
+
+	router.GET("/someJSON", func(context *gin.Context) {
+		context.JSON(http.StatusOK, gin.H{
+			"message": "hey", "status": http.StatusOK,
+		})
+	})
+
+	router.GET("/moreJSON", func(context *gin.Context) {
+
+		var msg struct {
+			Name    string `json:"user"`
+			Message string
+			Number  int
+		}
+		msg.Name = "Lena"
+		msg.Message = "hey"
+		msg.Number = 123
+
+		context.JSON(http.StatusOK, msg)
+	})
+
+	router.GET("/someXML", func(context *gin.Context) {
+		context.XML(http.StatusOK, gin.H{"message": "hey", "status": http.StatusOK})
+	})
+
+	router.GET("/someYAML", func(context *gin.Context) {
+		context.YAML(http.StatusOK, gin.H{"message": "hey", "status": http.StatusOK})
+	})
+
+	router.Run()
+
+}
+```
+### 上传文件
+
+#### 单文件
+
+```
+func main() {
+
+	router := gin.Default()
+	// 为 multipart form 设置较低的内存限制（默认是 32MiB）
+	router.MaxMultipartMemory = 8 << 20 // 8MiB
+	router.POST("/upload", func(context *gin.Context) {
+		// 单文件
+		file, _ := context.FormFile("file")
+		log.Println(file.Filename)
+
+		dst := "./" + file.Filename
+		// 上传文件至指定的完整文件路径
+		context.SaveUploadedFile(file, dst)
+
+		context.String(http.StatusOK, fmt.Sprintf("'%s' uploaded!", file.Filename))
+
+	})
+
+	router.Run()
+
+}
+```
+#### 多文件
+
+```
+func main() {
+
+	router := gin.Default()
+	// 为 multipart form 设置较低的内存限制（默认是 32MiB）
+	router.MaxMultipartMemory = 8 << 20 // 8MiB
+	router.POST("/upload", func(context *gin.Context) {
+		// multipart form
+		form, _ := context.MultipartForm()
+		files := form.File["files[]"]
+
+		for _, file := range files {
+			log.Println(file.Filename)
+
+			dst := "./" + file.Filename
+			// 上传文件至指定目录
+			context.SaveUploadedFile(file, dst)
+		}
+		context.String(http.StatusOK, fmt.Sprintf("%d files uploaded", len(files)))
+	})
+
+	router.Run()
+
+}
+```
+### 使用 BasicAuth 中间件
 
 
 
