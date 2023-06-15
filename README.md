@@ -1701,6 +1701,175 @@ func main() {
 }
 ```
 
+### 映射查询字符串或表单参数
+```
+func main() {
+
+	router := gin.Default()
+
+	router.POST("/post", func(context *gin.Context) {
+
+		ids := context.QueryMap("ids")
+		names := context.PostFormMap("names")
+
+		fmt.Printf("ids: %v; names: %v", ids, names)
+	})
+
+	router.Run()
+}
+```
+### 映射查询字符串或表单参数
+```
+func main() {
+
+	router := gin.Default()
+
+	// 使用现有的基础请求对象解析查询字符串参数
+	// 示例 URL: /welcome?firstname=Jane&lastname=Doe
+	router.GET("/welcome", func(context *gin.Context) {
+		firstname := context.DefaultQuery("firstname", "guest")
+		lastname := context.Query("lastname") // context.URL.Query("lastname") 的一种快捷方式
+
+		context.String(http.StatusOK, "Hello %s %s", firstname, lastname)
+	})
+
+	router.Run()
+}
+```
+### 模型绑定和验证
+
+要将请求体绑定到结构体中，使用模型绑定。Gin 目前支持 JSON、XML、YAML 和标准表单值的绑定（foo=bar&boo=baz）
+
+使用时，需要在要绑定的所有字段上，设置响应的tag。例如，使用 JSON 绑定时，设置字段标签为 json:"fieldname"。
+
+Gin 提供了两类绑定方法：
+
+- Type - Must bind
+    - Methods - Bind, BindJSON, BindXML, BindQuery, BindYAML
+    - Behavior - 这些方法属于 MustBindWith 的具体调用。如果发生绑定错误，则请求终止，并触发 c.AbortWithError(400, err).SetType(ErrorTypeBind)。响应状态码被设置为 400 并且 Content-Type 被设置为 text/plain; charset=utf-8。如果您在此之后尝试设置响应状态码，Gin 会输出日志 [GIN-debug] [WARNING] Headers were already written. Wanted to override status code 400 with 422。如果你希望更好地控制绑定，考虑使用 ShouldBind 等方法。
+- Type - Should bind
+    - Methods - ShouldBind, ShouldBindJSON, ShouldBindXML, ShouldBindQuery, ShouldBindYAMl
+    - Behavior - 这些方法属于 ShouldBindWith 的具体调用。如果发生绑定错误，Gin 会返回错误并由开发者处理错误和请求。
+
+使用 Bind 方法时，Gin 会尝试根据 Content-Type 推断如何绑定。如果你明确知道要绑定什么，可以使用 MustBindWith 或 ShouldBindWith。
+
+你也可以指定必须绑定的字段。如果一个字段的 tag 加上了 binding:"required"，但绑定时是空值，Gin 会报错。
+```
+func main() {
+
+	router := gin.Default()
+
+	// 绑定 JSON({"user": "admin", "password": "123456"})
+	router.POST("/loginJSON", func(context *gin.Context) {
+		var json Login
+		if err := context.ShouldBindJSON(&json); err != nil {
+			context.JSON(http.StatusBadGateway, gin.H{"error": err.Error()})
+			return
+		}
+
+		if json.User != "admin" || json.Password != "123456" {
+			context.JSON(http.StatusUnauthorized, gin.H{"status": "unauthorized"})
+			return
+		}
+
+		context.JSON(http.StatusOK, gin.H{"status": "you are logger in"})
+	})
+
+	router.POST("/loginXML", func(c *gin.Context) {
+		var xml Login
+		if err := c.ShouldBindXML(&xml); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		if xml.User != "manu" || xml.Password != "123" {
+			c.JSON(http.StatusUnauthorized, gin.H{"status": "unauthorized"})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{"status": "you are logged in"})
+	})
+
+	router.POST("/loginForm", func(context *gin.Context) {
+		var form Login
+		// 根据 Content-Type Header 推断使用哪个绑定器
+		if err := context.ShouldBind(&form); err != nil {
+			context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		if form.User != "admin" || form.Password != "123456" {
+			context.JSON(http.StatusUnauthorized, gin.H{"status": "unauthorized"})
+			return
+		}
+
+		context.JSON(http.StatusOK, gin.H{"status": "you are logger in"})
+	})
+
+	router.Run()
+}
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
