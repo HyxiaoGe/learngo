@@ -1809,44 +1809,330 @@ func main() {
 	router.Run()
 }
 ```
+### 绑定 Uri
 
+```
+func main() {
 
+	router := gin.Default()
+	router.GET("/:name/:id", func(context *gin.Context) {
+		var person Person
+		if err := context.ShouldBindUri(&person); err != nil {
+			context.JSON(http.StatusBadRequest, gin.H{"msg": err.Error()})
+			return
+		}
+		context.JSON(http.StatusOK, gin.H{"name": person.Name, "uuid": person.ID})
+	})
+	router.Run()
 
+}
+```
+### 绑定查询字符串或表单数据
+```
+type Person struct {
+	Name     string `form:"name"`
+	Address  string `form:"address"`
+	Birthday string `form:"birthday" time_format:"2006-01-02" time_utc:"1"`
+}
 
+func main() {
 
+	router := gin.Default()
+	router.GET("/testing", startPage)
+	router.Run()
 
+}
 
+func startPage(context *gin.Context) {
+	var person Person
+	// 如果是 GET 请求，只能使用 Form 绑定引擎
+	// 如果是 POST 请求，首先检查 content-type 是否为 JSON 或者 XML，然后再使用 Form（form-data）
+	if context.ShouldBind(&person) == nil {
+		log.Println(person.Name)
+		log.Println(person.Address)
+		log.Println(person.Birthday)
+	}
 
+	context.JSON(http.StatusOK, "Success")
+}
+```
+### 绑定表单数据至自定义结构体
+```
+type StructA struct {
+	FieldA string `form:"field_a"`
+}
 
+type StructB struct {
+	NestedStruct StructA
+	FieldB       string `form:"field_b"`
+}
 
+type StructC struct {
+	NestedStructPointer *StructA
+	FieldC              string `form:"field_c"`
+}
 
+type StructD struct {
+	NestedAnonyStruct struct {
+		Field string `form:"field_x"`
+	}
+	FieldD string `form:"field_d"`
+}
 
+func GetDataB(context *gin.Context) {
+	var b StructB
+	context.Bind(&b)
+	context.JSON(http.StatusOK, gin.H{
+		"a": b.NestedStruct,
+		"b": b.FieldB,
+	})
+}
 
+func GetDataC(context *gin.Context) {
+	var c StructC
+	context.Bind(&c)
+	context.JSON(http.StatusOK, gin.H{
+		"a": c.NestedStructPointer,
+		"c": c.FieldC,
+	})
+}
 
+func GetDataD(context *gin.Context) {
+	var d StructD
+	context.Bind(&d)
+	context.JSON(http.StatusOK, gin.H{
+		"a": d.NestedAnonyStruct,
+		"d": d.FieldD,
+	})
+}
 
+func main() {
 
+	router := gin.Default()
+	router.GET("/getb", GetDataB)
+	router.GET("/getc", GetDataC)
+	router.GET("/getd", GetDataD)
 
+	router.Run()
+}
+```
 
+使用 curl 命令结果：
 
+$ curl "http://localhost:8080/getb?field_a=hello&field_b=world"
+{"a":{"FieldA":"hello"},"b":"world"}
 
+$ curl "http://localhost:8080/getc?field_a=hello&field_c=world"
+{"a":{"FieldA":"hello"},"c":"world"}
 
+$ curl "http://localhost:8080/getd?field_x=hello&field_d=world"
+{"d":"world","x":{"FieldX":"hello"}}
 
+### 自定义 HTTP 配置
 
+直接使用 http.ListenAndServe()
+```
+func main() {
+    router := gin.Default()
+    http.ListenAndServe(":8080", router)
+}
+```
+或
+```
+func main() {
+    router := gin.Default()
+    
+    s := &http.Server{
+        Addr: "http://localhost:8080",
+        Handler: router,
+        ReadTimeout: 10 * time.Second,
+        WriteTimeout: 10 * time.Second,
+        MaxHeaderBytes: 1 << 20,
+    }
+    s.ListenAndServe()
+}
+```
+### 自定义中间件
+```
+func Logger() gin.HandlerFunc {
+	return func(context *gin.Context) {
+		t := time.Now()
+		// 设置 example 变量
+		context.Set("example", "12345")
+		// 请求前
+		context.Next()
+		// 请求后
+		latency := time.Since(t)
+		log.Print("latency: ", latency)
 
+		// 获取发送的 status
+		status := context.Writer.Status()
+		log.Print("status: ", status)
+	}
+}
 
+func main() {
 
+	router := gin.New()
+	router.Use(Logger())
 
+	router.GET("/test", func(ctx *gin.Context) {
+		example := ctx.MustGet("example").(string)
 
+		// 打印：”12345“
+		log.Println("example", example)
+	})
 
+	router.Run()
+}
+```
 
+### 设置和获取 Cookie
+```
+func main() {
 
+	router := gin.Default()
+	router.GET("/cookie", func(context *gin.Context) {
 
+		cookie, err := context.Cookie("gin_cookie")
 
+		if err != nil {
+			cookie = "NotSet"
+			context.SetCookie("gin_cookie", "test", 3600, "/", "localhost", false, true)
+		}
+		fmt.Printf("Cookie value: %s \n", cookie)
+	})
 
+	router.Run()
+}
+```
+### 路由组
 
+```
+func main() {
 
+	router := gin.Default()
 
+	// 简单的路由组：v1
+	v1 := router.Group("/v1")
+	{
+		v1.POST("/login", loginEndPoint)
+		v1.POST("/submit", submitEndPoint)
+		v1.POST("/read", readEndPoint)
+	}
 
+	// 简单的路由组：v2
+	v2 := router.Group("/v2")
+	{
+		v2.POST("/login", loginEndPoint)
+		v2.POST("/submit", submitEndPoint)
+		v2.POST("/read", readEndPoint)
+	}
+
+	router.Run()
+}
+```
+
+### 运行多个服务
+
+```
+var (
+	g errgroup.Group
+)
+
+func router01() http.Handler {
+	e := gin.New()
+	e.Use(gin.Recovery())
+	e.GET("/", func(ctx *gin.Context) {
+		ctx.JSON(http.StatusOK, gin.H{
+			"code":  http.StatusOK,
+			"error": "Welcome server 01",
+		})
+	})
+	return e
+}
+
+func router02() http.Handler {
+	e := gin.New()
+	e.Use(gin.Recovery())
+	e.GET("/", func(ctx *gin.Context) {
+		ctx.JSON(http.StatusOK, gin.H{
+			"code":  http.StatusOK,
+			"error": "Welcome server 02",
+		})
+	})
+	return e
+}
+
+func main() {
+
+	server01 := &http.Server{
+		Addr:              ":8080",
+		Handler:           router01(),
+		ReadHeaderTimeout: 5 * time.Second,
+		WriteTimeout:      10 * time.Second,
+	}
+
+	server02 := &http.Server{
+		Addr:              ":8081",
+		Handler:           router02(),
+		ReadHeaderTimeout: 5 * time.Second,
+		WriteTimeout:      10 * time.Second,
+	}
+
+	g.Go(func() error {
+		return server01.ListenAndServe()
+	})
+
+	g.Go(func() error {
+		return server02.ListenAndServe()
+	})
+
+	if err := g.Wait(); err != nil {
+		log.Fatal(err)
+	}
+}
+```
+### 重定向
+
+HTTP 重定向很容易。内部、外部重定向均支持。
+```
+router.GET("/redirect", func(context *gin.Context) {
+	context.Redirect(http.StatusMovedPermanently, "http://www.google.com/")
+})
+```
+
+通过 POST 方法进行 HTTP 重定向。
+```
+router.POST("/test", func(c *gin.Context) {
+	c.Redirect(http.StatusFound, "/foo")
+})
+```
+
+路由内部重定向，使用 HandleContext:
+```
+router.GET("/test", func(context *gin.Context) {
+	context.Request.URL.Path = "/test2"
+	router.HandleContext(context)
+})
+router.GET("/test2", func(context *gin.Context) {
+	context.JSON(http.StatusOK, gin.H{"hello": "world"})
+})
+```
+
+### 运行多个服务
+
+```
+func main() {
+	router := gin.Default()
+	router.Static("/assets", "./assets")
+	router.StaticFS("/more_static", http.Dir("my_file_system"))
+	router.StaticFile("/favicon.ico", "./resources/favicon.ico")
+
+	// 监听并在 0.0.0.0:8080 上启动服务
+	router.Run(":8080")
+}
+```
 
 
 

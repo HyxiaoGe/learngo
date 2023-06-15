@@ -5,6 +5,7 @@ go 1.18
 require (
 	github.com/HyxiaoGe/learngo v0.0.0-20230613035426-482f10b7a237
 	github.com/gin-gonic/gin v1.9.1
+	golang.org/x/sync v0.3.0
 )
 
 require (
